@@ -1,1 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Diary</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+  <div class="header">
+    <img src="sticker.png" class="sticker">
+
+    <h1 class="title">My Diary</h1>
+
+    <div class="music-container">
+      <audio id="audio" controls>
+        <source src="music.mp3" type="audio/mp3">
+      </audio>
+
+      <canvas id="visualizer"></canvas>
+    </div>
+  </div>
+
+</body>
+
+  <script>
+const audio = document.getElementById("audio");
+const canvas = document.getElementById("visualizer");
+const ctx = canvas.getContext("2d");
+
+canvas.width = canvas.offsetWidth;
+canvas.height = canvas.offsetHeight;
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const source = audioCtx.createMediaElementSource(audio);
+const analyser = audioCtx.createAnalyser();
+
+source.connect(analyser);
+analyser.connect(audioCtx.destination);
+
+analyser.fftSize = 64;
+const bufferLength = analyser.frequencyBinCount;
+const dataArray = new Uint8Array(bufferLength);
+
+function draw() {
+  requestAnimationFrame(draw);
+
+  analyser.getByteFrequencyData(dataArray);
+
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const barWidth = canvas.width / bufferLength;
+
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = dataArray[i];
+
+    ctx.fillStyle = "white";
+    ctx.fillRect(i * barWidth, canvas.height - barHeight, barWidth - 2, barHeight);
+  }
+}
+
+audio.onplay = () => {
+  audioCtx.resume();
+  draw();
+};
+</script>
+</html>
